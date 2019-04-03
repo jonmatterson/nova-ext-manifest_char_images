@@ -55,12 +55,37 @@ $this->event->listen(['location', 'view', 'data', 'main', 'personnel_index'], fu
 });
 
 $this->event->listen(['location', 'view', 'output', 'main', 'personnel_index'], function($event){
-  $event['output'] .= '<script type="text/javascript">
-  $(".char_image").each(function(){
-    var src = $(this).attr("data-src");
-    $(this).closest("tr").find("img[src*=\'ranks\']").before(
-      $("<div>").css("display","inline-block").css("height","120px").css("width","144px").css("background", "url(\'"+src+"\') 0 0 no-repeat, linear-gradient(to right, #fff, #000 20%)").css("background-blend-mode", "screen").css("background-size", "cover")
-    ).closest("td").css("text-align","right");
-  });
-  </script>';
+    
+    include(dirname(__FILE__).'/config.php');
+    
+    $this->config->load('extensions');
+    $extensionsConfig = $this->config->item('extensions');
+    if(isset($extensionsConfig['manifest_char_images']['blend'])){
+        $blend = $extensionsConfig['manifest_char_images']['blend'];
+    }else{
+        $blend = null;
+    }
+    
+    if(!empty($blend) && !empty($EXTENSION__MANIFEST_CHAR_IMAGES__CONFIG['blendOptions'][$blend])){
+        $blend = $EXTENSION__MANIFEST_CHAR_IMAGES__CONFIG['blendOptions'][$blend];
+        $event['output'] .= '<script type="text/javascript">
+        $(".char_image").each(function(){
+        var src = $(this).attr("data-src");
+        $(this).closest("tr").find("img[src*=\'ranks\']").before(
+          $("<div>").css("display","inline-block").css("height","120px").css("width","144px").css("background", "url(\'"+src+"\') 0 0 no-repeat, linear-gradient(to right, '.$blend['left'].', '.$blend['right'].' '.$blend['width'].')").css("background-blend-mode", "'.$blend['mode'].'").css("background-size", "cover")
+        ).closest("td").css("text-align","right");
+        });
+        </script>';
+    }else{
+        $event['output'] .= '<script type="text/javascript">
+        $(".char_image").each(function(){
+        var src = $(this).attr("data-src");
+        $(this).closest("tr").find("img[src*=\'ranks\']").before(
+          $("<div>").css("display","inline-block").css("height","120px").css("width","144px").css("background", "url(\'"+src+"\') 0 0 no-repeat").css("background-size", "cover")
+        ).closest("td").css("text-align","right");
+        });
+        </script>';
+    }
+    
+    
 });
